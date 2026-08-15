@@ -446,6 +446,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tempo"
+version = "0.1.0"
+dependencies = [
+ "tempo-core",
+ "tempo-derive",
+ "tempo-fixed",
+ "tempo-netcode",
+ "tempo-predict",
+ "tempo-reliability",
+ "tempo-transport",
+ "tempo-wire",
+]
+
+[[package]]
 name = "tempo-core"
 version = "0.1.0"
 dependencies = [
@@ -453,6 +467,15 @@ dependencies = [
  "proptest",
  "tempo-fixed",
  "tempo-wire",
+]
+
+[[package]]
+name = "tempo-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

@@ -1,0 +1,21 @@
+[package]
+name = "tempo"
+description = "A plug-and-play multiplayer engine. The facade crate: import this one."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+tempo-core.workspace = true
+tempo-derive = { path = "../tempo-derive", version = "0.1.0" }
+tempo-fixed.workspace = true
+tempo-netcode.workspace = true
+tempo-predict.workspace = true
+tempo-reliability.workspace = true
+tempo-transport.workspace = true
+tempo-wire.workspace = true
+
+[lints]
+workspace = true
