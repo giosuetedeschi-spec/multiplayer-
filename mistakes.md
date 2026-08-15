@@ -84,6 +84,14 @@ could not have detected the error it was written to catch.
 assert the stated property, in a representation the property is actually stated in. If the test and
 the spec disagree, find out which is wrong before changing either.
 
+**Recurrence, same day, `tempo-wire`.** `quantized_bit_widths_are_exact` asserted that a
+single-representable-value field needs 1 bit. The comment directly above the assertion said "a
+single step needs no bits at all" — I wrote the correct reasoning and then the wrong number on the
+next line. `ceil(log2(1))` is 0. Third instance of this class in one session, which is the signal
+worth recording: the failure mode is not carelessness about the rule, it is not *checking the
+arithmetic* once the rule is settled. The follow-up was to add a codec test for the zero-width
+field, since a 0-bit read and write is a real path the bit primitives have to handle.
+
 ---
 
 ## 2026-08-15 — `panic = "abort"` contradicted the ABI spec

@@ -167,19 +167,30 @@ steps = floor((hi - lo) / p) + 1
 bits  = ceil(log2(steps))
 ```
 
-Encoding, in exact fixed-point arithmetic — no floats anywhere:
+All of it is computed on **raw `Fx` values in 128-bit integer arithmetic**, never with `Fx`
+division and never with floats. `Fx` division would round twice and would saturate for wide ranges;
+raw arithmetic is exact because both operands carry the same `2^32` scale, so the ratio is unscaled.
 
 ```
+steps = (max_raw - min_raw) / step_raw + 1          // integer division, exact
+bits  = bit_width(steps - 1)                        // ceil(log2(steps)); 0 when steps == 1
+
 clamped = clamp(v, lo, hi)
-q       = round_half_away_from_zero( div(sub(clamped, lo), p) )       // Fx ops per fixed-point.md
+num     = clamped_raw - min_raw                     // never negative after clamping
+q       = (num + step_raw / 2) / step_raw           // round half away from zero
+q       = clamp(q, 0, steps - 1)
 emit q as `bits` bits
 ```
 
 Decoding:
 
 ```
-v = add(lo, mul(from_int(q), p))
+v_raw = saturate(min_raw + q * step_raw)
 ```
+
+A step coarser than the range yields `steps == 1` and therefore `bits == 0`: the field occupies no
+space and always decodes to `min`. This is degenerate but reachable, and both the encoder and the
+decoder must handle a zero-width field rather than treating it as an error.
 
 Quantization is **lossy and specified**: `decode(encode(v))` is the nearest representable step, not
 `v`. Values outside `[lo, hi]` **saturate silently**. This is deliberate — a range error mid-match

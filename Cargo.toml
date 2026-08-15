@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/tempo-tablegen",
     "crates/tempo-fixed",
+    "crates/tempo-wire",
 ]
 
 [workspace.package]
