@@ -33,7 +33,7 @@ planned · The features that justify the core owning state.
 
 - **done** `tempo-rollback` — GGPO-class rollback, input prediction, sync-test mode
 - lag compensation via server-side rewind
-- `tempo-interest` — GridAOI, spatial hash, priority accumulator, per-client budgets
+- **done** `tempo-interest` — spatial grid, relevance tracking, priority accumulator
 
 ## P3 — The boundary and the first bindings
 

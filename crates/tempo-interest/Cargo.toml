@@ -1,0 +1,15 @@
+[package]
+name = "tempo-interest"
+description = "Interest management and priority accumulation for tempo."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+tempo-core.workspace = true
+tempo-fixed.workspace = true
+
+[lints]
+workspace = true
