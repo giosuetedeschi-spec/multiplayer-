@@ -1,0 +1,13 @@
+[package]
+name = "tempo-transport"
+description = "Datagram transports for tempo: in-memory, simulated-link and UDP."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true
