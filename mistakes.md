@@ -94,6 +94,42 @@ field, since a 0-bit read and write is a real path the bit primitives have to ha
 
 ---
 
+## 2026-08-15 — Reached for TCP's retransmission strategy in a game engine
+
+**What.** Reliable channels retransmitted on a round-trip timeout with exponential backoff — the
+TCP/QUIC design, applied without asking whether the workload matched. Two failures, found by one
+integration test that dropped every third packet:
+
+1. **Resonance.** A fixed retry interval lands on a periodic multiple. At a 50 ms timeout with
+   packets every 20 ms, retries land every 60 ms; a network dropping every third packet drops one
+   every 60 ms too. Every single retransmission hit a dropped packet and the channel starved
+   *forever* — the test delivered 1 of 20 messages and then stopped.
+2. **Backoff was actively harmful.** After adding jitter, delivery worked but took **three seconds**
+   for twenty small messages. Doubling from the first retry meant the unluckiest message was waiting
+   hundreds of milliseconds, and on an ordered channel everyone waits for the unluckiest one.
+
+**Caught by.** The one test that simulated realistic loss rather than testing a mechanism in
+isolation. Forty-two unit tests passed throughout — each verified that retransmission *happened*,
+none asked whether it happened *usefully*.
+
+**Class: importing a solution without checking that the problem is the same.** Exponential backoff
+exists to prevent congestion collapse during bulk transfer, where the sender is the cause of the
+congestion and the correct response is to slow down. A game sending a 4-byte spawn message is not
+congesting anything, and gameplay is blocked until it arrives. The workload is inverted, so the
+canonical answer is inverted too: retry *faster* than the round trip, not slower, and trade a little
+bandwidth for latency.
+
+**What it changed.** Retry interval is now roughly half the round trip with jitter of half again,
+and backoff begins only after eight attempts — late enough to distinguish a lossy peer from a
+departed one. Twenty messages under 33% loss now clear in well under a second.
+
+**Rule.** When adopting a standard algorithm, write down what it optimises for and check that
+against this workload before writing the code. And keep at least one test per subsystem that
+simulates adversarial conditions end to end: mechanism tests confirm a thing happens, and only a
+realistic one confirms it helps.
+
+---
+
 ## 2026-08-15 — Assumed sender and receiver hold identical bytes
 
 **What.** Three separate assertions — a test helper, a long-running sync test, and the crate's

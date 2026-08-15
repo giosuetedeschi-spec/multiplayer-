@@ -345,6 +345,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "tempo-reliability"
+version = "0.1.0"
+dependencies = [
+ "tempo-transport",
+]
+
+[[package]]
 name = "tempo-tablegen"
 version = "0.1.0"
 
