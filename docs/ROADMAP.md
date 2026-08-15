@@ -21,7 +21,7 @@ binding exists. Proving the design once beats porting a wrong design six times.
 - **done** `tempo-wire` — bit packing, quantization, schema canonicalisation and hashing
 - **done** `tempo-core` — world arena, entity generations, snapshots, snapshot ring, baseline deltas
 - **done** `tempo-transport` — loopback, simulated-link, UDP
-- `tempo-netcode` — connect tokens, encryption, replay protection
+- **done** `tempo-netcode` — connect tokens, encryption, replay protection
 - **done** `tempo-reliability` — four channels, ack bitfields, fragmentation
 - `tempo-predict` — client prediction, reconciliation, interpolation, clock sync
 - `tempo` — the facade crate and derive macros

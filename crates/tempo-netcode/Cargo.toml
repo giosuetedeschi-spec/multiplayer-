@@ -1,0 +1,15 @@
+[package]
+name = "tempo-netcode"
+description = "Connect tokens, packet encryption and replay protection for tempo."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
+getrandom = "0.3"
+
+[lints]
+workspace = true
