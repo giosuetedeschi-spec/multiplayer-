@@ -1,0 +1,11 @@
+[package]
+name = "tempo-tablegen"
+description = "Generates the committed lookup tables for tempo-fixed. Not a runtime dependency."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
