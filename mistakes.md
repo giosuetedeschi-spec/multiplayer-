@@ -57,6 +57,35 @@ check each one. Write the enumeration down rather than trusting recall.
 
 ---
 
+## 2026-08-15 — Wrote two tests that contradicted the spec they were testing
+
+**What.** Both `sqrt` tests failed on first run. Neither was an implementation bug:
+
+- `sqrt_is_the_exact_floor` asserted `sqrt(2) == Fx::SQRT_2`. But §2.1 specifies `sqrt` as the
+  exact **floor**, while §1.1 specifies constants as the **nearest** representable value. For an
+  irrational result those differ by up to one ULP, and `sqrt(2)` lands exactly one ULP below the
+  constant. The spec was right; my assertion was wrong.
+- `sqrt_satisfies_its_defining_inequality` checked `r² ≤ x < (r+1ulp)²` using `Fx` multiplication,
+  which itself truncates. The truncation swallowed the difference and the check was simultaneously
+  wrong and nearly vacuous.
+
+**Caught by.** Running the tests. Both failed loudly and immediately.
+
+**Class: writing the assertion from intuition rather than from the document open in the next tab.**
+"Square root of two should equal the square-root-of-two constant" is what a reasonable person
+expects. It is not what the specification says, and I had written that specification an hour
+earlier. The test encoded my expectation instead of the requirement.
+
+**Second-order lesson.** A test that checks a rounding rule must not perform its arithmetic in the
+type whose rounding is under test. The second failure was not just a wrong expectation — the check
+could not have detected the error it was written to catch.
+
+**Rule.** When testing behaviour that a spec pins exactly, quote the spec section in the test and
+assert the stated property, in a representation the property is actually stated in. If the test and
+the spec disagree, find out which is wrong before changing either.
+
+---
+
 ## 2026-08-15 — `panic = "abort"` contradicted the ABI spec
 
 **What.** The release profile in the workspace `Cargo.toml` set `panic = "abort"`, copied in as a

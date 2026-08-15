@@ -41,7 +41,12 @@ fn write_table(dir: &Path, name: &str, values: &[i64]) {
     }
     let path = dir.join(name);
     fs::write(&path, &bytes).unwrap_or_else(|e| panic!("writing {}: {e}", path.display()));
-    println!("{:>12}  {:>6} entries  {:>7} bytes", name, values.len(), bytes.len());
+    println!(
+        "{:>12}  {:>6} entries  {:>7} bytes",
+        name,
+        values.len(),
+        bytes.len()
+    );
 }
 
 fn main() {
