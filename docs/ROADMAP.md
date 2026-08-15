@@ -29,10 +29,10 @@ binding exists. Proving the design once beats porting a wrong design six times.
 
 ## P2 — Advanced simulation
 
-planned · The features that justify the core owning state.
+**done** · The features that justify the core owning state.
 
 - **done** `tempo-rollback` — GGPO-class rollback, input prediction, sync-test mode
-- lag compensation via server-side rewind
+- **done** lag compensation via server-side rewind
 - **done** `tempo-interest` — spatial grid, relevance tracking, priority accumulator
 
 ## P3 — The boundary and the first bindings

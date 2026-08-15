@@ -63,12 +63,14 @@
 pub mod delta;
 pub mod entity;
 pub mod layout;
+pub mod rewind;
 pub mod snapshot;
 pub mod world;
 
 pub use delta::{apply_delta, encode_delta, DeltaResult};
 pub use entity::{Entity, EntityAllocator, Tick};
 pub use layout::{slot_size, ComponentLayout, FieldLayout};
+pub use rewind::{RewindBuffer, RewindConfig, RewindError};
 pub use snapshot::{SnapshotRing, StateComparison, WorldSnapshot};
 pub use world::{ComponentId, World};
 
@@ -127,6 +129,8 @@ pub enum CoreError {
     },
     /// A received delta was structurally invalid.
     MalformedDelta(String),
+    /// A lag-compensation rewind could not reach the requested tick.
+    Rewind(rewind::RewindError),
     /// An error from the wire codec.
     Wire(WireError),
 }
@@ -173,6 +177,13 @@ impl fmt::Display for CoreError {
                 "snapshot has {found} components but the world has {expected}"
             ),
             CoreError::MalformedDelta(d) => write!(f, "malformed delta: {d}"),
+            CoreError::Rewind(rewind::RewindError::BeyondCap { requested, oldest }) => write!(
+                f,
+                "cannot rewind to {requested:?}; lag compensation reaches only to {oldest:?}"
+            ),
+            CoreError::Rewind(rewind::RewindError::NotRecorded { requested }) => {
+                write!(f, "no lag-compensation history recorded for {requested:?}")
+            }
             CoreError::Wire(e) => write!(f, "{e}"),
         }
     }

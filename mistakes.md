@@ -94,6 +94,34 @@ field, since a 0-bit read and write is a real path the bit primitives have to ha
 
 ---
 
+## 2026-08-15 — Asserted a security property the design cannot provide
+
+**What.** A lag-compensation test claimed that a client lying about its interpolation delay would be
+"clamped against measured round-trip time" and get the same answer as an honest one. It failed: the
+liar got 200 ms of rewind where the honest client got 100 ms.
+
+The test was wrong, and so was the thinking behind it. **A server cannot verify how far behind a
+client renders.** Round-trip time is measurable; a client's chosen interpolation delay is not
+observable from the wire at all. There is no clamp that distinguishes the honest claim from the
+dishonest one, because there is no signal to distinguish them with.
+
+**Caught by.** The test failing, and then asking why rather than adjusting the expected value.
+
+**Class: writing a security assertion that sounds right instead of one that is true.** "Clamped
+against measured latency" is the kind of phrase that reads as rigorous and means nothing here. Had I
+loosened the assertion to make it pass, the module would have shipped documenting a guarantee it
+does not make — which is worse than no documentation, because someone would rely on it.
+
+**What it changed.** The bound is now explicit as `max_view_delay_ms`, and both the code and the
+docs say plainly what is guaranteed: *a lie buys at most this much*, not *lying fails*. The test
+asserts that narrower property, plus a hard cap no combination of inputs can exceed.
+
+**Rule.** For anything security-shaped, write down the attacker's capability and the defender's
+observable signal before writing the assertion. If the defender has no signal, the honest design is
+a bound on the damage, and the documentation must say so rather than implying detection.
+
+---
+
 ## 2026-08-15 — Corrected a prediction without invalidating what was derived from it
 
 **What.** `InputQueue::confirm` recorded a corrected input at tick *T* and reported that a rollback
