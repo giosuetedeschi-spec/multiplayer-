@@ -7,9 +7,10 @@ Authoritative server, listen-server, and peer-to-peer mesh. Rollback. Fixed tick
 delta compression. Interest management. Lag compensation. Client prediction and reconciliation.
 NAT traversal. Matchmaking. One import, one API, six languages.
 
-> **Status: pre-alpha, under active construction.** The specifications in [`docs/`](docs/) are
-> the source of truth and are written ahead of the implementation on purpose. See
-> [`docs/ROADMAP.md`](docs/ROADMAP.md) for what exists today.
+> **Status: P1 complete, pre-alpha.** The Rust core works end to end — a predicting client stays
+> in agreement with an authoritative server at 300 ms round trip and 10% packet loss, with zero
+> corrections. Language bindings are next. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for what exists
+> today, and [`mistakes.md`](mistakes.md) for what went wrong on the way.
 
 > **Licensing is deliberately deferred** — there is no `LICENSE` file yet, which under default
 > copyright means all rights reserved. See [ADR-0018](docs/adr/0018-licensing-deferred.md).
@@ -43,32 +44,46 @@ use tempo::prelude::*;
 
 #[derive(Replicate)]
 struct Player {
-    #[replicate(quantize = "0.001", delta = "dirty_mask")]
+    #[replicate(quantize = "0.001", min = "-1000", max = "1000", priority = 2.0)]
     position: Vec2,
-    #[replicate(quantize = "0.01")]
+    #[replicate(quantize = "0.01", min = "0", max = "100")]
     health: Fx,
-    #[replicate(priority = 0.2)]
+    #[replicate(bits = 10)]
     score: u32,
 }
 
-let mut server = Session::server(Config {
-    topology: Topology::Dedicated,
-    tick_rate: 60,
-    send_rate: 20,
-    ..Default::default()
+let mut world = World::new();
+let players = world.register_component::<Player>()?;
+
+let e = world.spawn();
+players.write(&mut world, e, &Player {
+    position: Vec2::from_ints(3, 4),
+    health: Fx::from_int(100),
+    score: 700,
 })?;
 
-loop {
-    let frame = server.begin_tick()?;
-    for input in frame.inputs() {
-        // your gameplay logic, against zero-copy views of the arena
-    }
-    server.end_tick(frame)?;
-}
+// Replicate to a peer: a bit-packed delta against what that peer already holds.
+let delta = encode_delta(&world, previous_baseline.as_ref())?;
+apply_delta(&mut client_world, &delta.bytes)?;
 ```
 
-The same program in Python, TypeScript, Go, C, or C++ is the same shape — see
-[`docs/guides/`](docs/guides/).
+The same program in Python, TypeScript, Go, C, or C++ will be the same shape — those bindings are
+Phase 3 and 4.
+
+Run the end-to-end demo to see the whole stack working:
+
+```
+cargo run -p authoritative-demo
+```
+
+```
+link             lead   arrived   mean B corrected starved   resync
+perfect             1    100.0%     20.0         0       1        0
+broadband           3     99.5%     20.0         0       3        0
+mobile             20     88.0%     19.7         0      20        0
+```
+
+Zero corrections at 300 ms round trip with 10% loss, and snapshots averaging 20 bytes.
 
 ## Documentation
 

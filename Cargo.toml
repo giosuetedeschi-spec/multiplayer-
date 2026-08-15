@@ -9,6 +9,8 @@ members = [
     "crates/tempo-reliability",
     "crates/tempo-netcode",
     "crates/tempo-predict",
+    "crates/tempo-derive",
+    "crates/tempo",
     "examples/authoritative-demo",
 ]
 

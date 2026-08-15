@@ -14,7 +14,7 @@ normative specifications the implementation is written against.
 
 ## P1 — The Rust vertical slice
 
-*in progress* · One complete, playable path through the whole system in Rust alone, before any
+**done** · One complete, playable path through the whole system in Rust alone, before any
 binding exists. Proving the design once beats porting a wrong design six times.
 
 - **done** `tempo-fixed` — Q32.32 deterministic math, vectors, quaternions
@@ -25,7 +25,7 @@ binding exists. Proving the design once beats porting a wrong design six times.
 - **done** `tempo-reliability` — four channels, ack bitfields, fragmentation
 - **done** `tempo-predict` — client prediction, reconciliation, clock sync
 - **done** end-to-end demo: authoritative server plus predicting client over a simulated link
-- `tempo` — the facade crate and derive macros
+- **done** `tempo` — the facade crate and `#[derive(Replicate)]`
 
 ## P2 — Advanced simulation
 
