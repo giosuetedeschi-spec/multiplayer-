@@ -1,9 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/tempo-fixed",
-    "crates/tempo-wire",
-    "crates/tempo-core",
+    "crates/tempo-tablegen",
 ]
 
 [workspace.package]
@@ -32,7 +30,6 @@ undocumented_unsafe_blocks = "warn"
 opt-level = 3
 lto = "thin"
 codegen-units = 1
-panic = "abort"
 
 [profile.bench]
 lto = "thin"

@@ -51,6 +51,7 @@ here. See [ADR-0000](adr/0000-adr-process.md) for the format.
 | [0023](adr/0023-eventual-sync-mode.md) | A CRDT mode for non-game realtime sync |
 | [0024](adr/0024-phasing-and-sequencing.md) | Spec first, Rust slice second, bindings third |
 | [0025](adr/0025-naming.md) | The name `tempo` |
+| [0026](adr/0026-rust-not-go-for-the-core.md) | Rust, not Go, for the core |
 
 ### [`spec/`](spec/) — normative specifications
 
