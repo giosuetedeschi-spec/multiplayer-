@@ -24,6 +24,17 @@ pub struct WorldSnapshot {
 }
 
 impl WorldSnapshot {
+    /// An empty snapshot, for use as a reusable buffer with [`World::snapshot_into`].
+    pub fn empty() -> WorldSnapshot {
+        WorldSnapshot {
+            tick: Tick::ZERO,
+            generations: Vec::new(),
+            alive: Vec::new(),
+            free: Vec::new(),
+            columns: Vec::new(),
+        }
+    }
+
     /// Number of entity slots covered.
     #[inline]
     pub fn slot_count(&self) -> usize {
@@ -67,6 +78,31 @@ impl World {
                 .iter()
                 .map(|c| (c.data.clone(), c.present.clone()))
                 .collect(),
+        }
+    }
+
+    /// Copies state into an existing snapshot, reusing its buffers.
+    ///
+    /// Equivalent to [`World::snapshot`] but allocation-free once the buffers have grown. Used by
+    /// the rewind path, which runs per hit query and must not allocate — allocation there makes
+    /// frame time depend on how much shooting is happening.
+    pub fn snapshot_into(&self, out: &mut WorldSnapshot) {
+        let (generations, alive, free) = self.entities.raw();
+        out.tick = self.tick();
+        out.generations.clear();
+        out.generations.extend_from_slice(generations);
+        out.alive.clear();
+        out.alive.extend_from_slice(alive);
+        out.free.clear();
+        out.free.extend_from_slice(free);
+
+        out.columns
+            .resize_with(self.columns.len(), Default::default);
+        for (dst, src) in out.columns.iter_mut().zip(self.columns.iter()) {
+            dst.0.clear();
+            dst.0.extend_from_slice(&src.data);
+            dst.1.clear();
+            dst.1.extend_from_slice(&src.present);
         }
     }
 
