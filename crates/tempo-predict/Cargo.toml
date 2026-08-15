@@ -1,0 +1,16 @@
+[package]
+name = "tempo-predict"
+description = "Client prediction, server reconciliation and clock synchronisation for tempo."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+tempo-core.workspace = true
+tempo-fixed.workspace = true
+tempo-wire.workspace = true
+
+[lints]
+workspace = true

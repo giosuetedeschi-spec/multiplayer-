@@ -23,9 +23,9 @@ binding exists. Proving the design once beats porting a wrong design six times.
 - **done** `tempo-transport` — loopback, simulated-link, UDP
 - **done** `tempo-netcode` — connect tokens, encryption, replay protection
 - **done** `tempo-reliability` — four channels, ack bitfields, fragmentation
-- `tempo-predict` — client prediction, reconciliation, interpolation, clock sync
+- **done** `tempo-predict` — client prediction, reconciliation, clock sync
+- **done** end-to-end demo: authoritative server plus predicting client over a simulated link
 - `tempo` — the facade crate and derive macros
-- a playable 2D authoritative-server demo
 
 ## P2 — Advanced simulation
 

@@ -94,6 +94,47 @@ field, since a 0-bit read and write is a real path the bit primitives have to ha
 
 ---
 
+## 2026-08-15 — Built the demo without the client lead, then miscounted the consequence
+
+Two bugs from one end-to-end demo, both invisible to 250 passing unit tests.
+
+**What (first).** The demo had client and server simulating tick *N* at the same wall-clock moment.
+So the client's input for tick *N* was sent at *N* and arrived after the server had already
+simulated it. The server substituted a default input every tick, the prediction disagreed every
+tick, and the client corrected on **199 of 200 snapshots — on a lossless LAN**.
+
+This is precisely what ADR-0016 exists to prevent, and I had written that ADR and implemented
+`ClockSync` before writing the demo. I then built the demo without using it.
+
+**What (second).** Fixing the lead exposed the next one. `Predictor::reconcile` treated "the
+snapshot's tick is not in my history" as a single case and resynced. But that conflates two
+opposite situations: *old news* (a duplicated or delayed snapshot for a tick already confirmed) and
+*we have fallen behind*. Resyncing on old news clears history, after which the next snapshot is also
+older than everything held — so it resyncs too, and the client never predicts again. A cascade from
+one late packet. It showed as 199 resyncs on a 40 ms link.
+
+**Caught by.** Running the demo and reading the numbers, not by any test. Both bugs produced
+*plausible* output — the session ran, state stayed synchronised, nothing crashed. Only the
+correction and resync counts revealed that prediction was doing no useful work.
+
+**Class: building the integration without using the parts built for it.** Each layer was correct in
+isolation and tested in isolation. The demo was the first thing to ask whether they fit together,
+and the answer was no — twice. The second bug is a variant of a mistake already in this file
+(solving a case and not enumerating its siblings): "not found" had two causes and I handled one.
+
+**What it changed.** `Reconciliation::Stale` is now a distinct outcome from `Resynced`, documented
+with why conflating them cascades. The demo derives its lead from `ClockSync` rather than assuming
+zero. Inputs are sent with eight-tick redundancy, since an input cannot usefully be retransmitted —
+by the time it arrived its tick would have passed. Corrections and resyncs are now zero on every
+profile including 300 ms round trip at 10% loss, and the end-to-end test asserts that.
+
+**Rule.** A subsystem is not finished when its unit tests pass; it is finished when something uses
+it end to end and the *numbers* are right. Instrument the integration with counters that would look
+wrong if the feature were silently doing nothing — "it ran without errors" is not evidence that it
+worked.
+
+---
+
 ## 2026-08-15 — Reached for TCP's retransmission strategy in a game engine
 
 **What.** Reliable channels retransmitted on a round-trip timeout with exponential backoff — the

@@ -69,7 +69,7 @@ pub mod world;
 pub use delta::{apply_delta, encode_delta, DeltaResult};
 pub use entity::{Entity, EntityAllocator, Tick};
 pub use layout::{slot_size, ComponentLayout, FieldLayout};
-pub use snapshot::{SnapshotRing, WorldSnapshot};
+pub use snapshot::{SnapshotRing, StateComparison, WorldSnapshot};
 pub use world::{ComponentId, World};
 
 use core::fmt;

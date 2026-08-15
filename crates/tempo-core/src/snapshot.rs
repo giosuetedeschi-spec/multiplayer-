@@ -367,3 +367,113 @@ mod tests {
         assert!(ring.size_bytes() <= 8 * w.snapshot().size_bytes());
     }
 }
+
+/// How a world compares against a snapshot.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StateComparison {
+    /// Every replicated field is within tolerance.
+    Agrees,
+    /// A field differs by more than the tolerance allows.
+    Diverges {
+        /// The entity that disagrees.
+        entity: crate::Entity,
+        /// The component's name.
+        component: String,
+        /// The field's name.
+        field: String,
+    },
+    /// The two describe different sets of live entities.
+    EntitySetDiffers {
+        /// The slot that disagrees.
+        index: u32,
+    },
+}
+
+impl World {
+    /// Compares this world against a snapshot, allowing `tolerance` of numeric drift per field.
+    ///
+    /// # Why a tolerance is required rather than optional
+    ///
+    /// A client's prediction is computed in raw fixed point, while an authoritative snapshot has
+    /// been through quantization. The two are *supposed* to differ, by up to half a step per field.
+    /// An exact comparison would report a divergence on every quantized field on every tick, and a
+    /// client that reconciled on that would re-simulate constantly and never feel responsive.
+    ///
+    /// The tolerance is therefore the error the application is willing to live with, and choosing it
+    /// is a gameplay decision: too tight and the client corrects visibly for no reason, too loose
+    /// and genuine divergence goes unnoticed. One quantization step is the sensible floor.
+    pub fn compare_with(
+        &self,
+        snap: &WorldSnapshot,
+        tolerance: tempo_fixed::Fx,
+    ) -> StateComparison {
+        let slots = self.slot_count().max(snap.slot_count());
+        for index in 0..slots as u32 {
+            let here = self.entity_at(index);
+            let there = snap.slot_live(index as usize);
+            match (here, there) {
+                (None, false) => continue,
+                (Some(_), false) | (None, true) => {
+                    return StateComparison::EntitySetDiffers { index }
+                }
+                (Some(entity), true) => {
+                    if !snap.was_live(index as usize, entity.generation()) {
+                        return StateComparison::EntitySetDiffers { index };
+                    }
+                    for c in self.canonical_component_ids() {
+                        let layout = match self.layout(c) {
+                            Ok(l) => l,
+                            Err(_) => continue,
+                        };
+                        let mine_present = self.has(entity, c);
+                        let theirs_present = snap.column_present(c.0 as usize, index as usize);
+                        if mine_present != theirs_present {
+                            return StateComparison::Diverges {
+                                entity,
+                                component: layout.desc.name.clone(),
+                                field: "<presence>".into(),
+                            };
+                        }
+                        if !mine_present {
+                            continue;
+                        }
+                        let mine_slot = self.slot_bytes(entity, c).expect("presence checked");
+                        let theirs_slot =
+                            snap.column_slot(c.0 as usize, index as usize, layout.stride);
+
+                        for f in 0..layout.field_count() {
+                            let a = layout.read(mine_slot, f);
+                            let b = layout.read(theirs_slot, f);
+                            if !values_agree(&a, &b, tolerance) {
+                                return StateComparison::Diverges {
+                                    entity,
+                                    component: layout.desc.name.clone(),
+                                    field: layout.fields[f].desc.name.clone(),
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        StateComparison::Agrees
+    }
+}
+
+/// True if two field values are equal, allowing numeric types to differ by up to `tolerance`.
+fn values_agree(a: &tempo_wire::Value, b: &tempo_wire::Value, tolerance: tempo_fixed::Fx) -> bool {
+    use tempo_fixed::Fx;
+    use tempo_wire::Value;
+
+    let near = |x: Fx, y: Fx| x.sub(y).abs().raw() <= tolerance.raw();
+    match (a, b) {
+        (Value::Fx(x), Value::Fx(y)) => near(*x, *y),
+        (Value::Vec2(x), Value::Vec2(y)) => near(x.x, y.x) && near(x.y, y.y),
+        (Value::Vec3(x), Value::Vec3(y)) => near(x.x, y.x) && near(x.y, y.y) && near(x.z, y.z),
+        (Value::Quat(x), Value::Quat(y)) => {
+            near(x.x, y.x) && near(x.y, y.y) && near(x.z, y.z) && near(x.w, y.w)
+        }
+        // Discrete values have no meaningful tolerance: a health of 99 is not nearly 100.
+        _ => a == b,
+    }
+}

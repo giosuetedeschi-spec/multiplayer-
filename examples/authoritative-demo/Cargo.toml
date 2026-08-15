@@ -1,0 +1,19 @@
+[package]
+name = "authoritative-demo"
+description = "End-to-end demo: authoritative server plus a predicting client over a simulated link."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+tempo-core.workspace = true
+tempo-fixed.workspace = true
+tempo-predict.workspace = true
+tempo-reliability.workspace = true
+tempo-transport.workspace = true
+tempo-wire.workspace = true
+
+[lints]
+workspace = true
