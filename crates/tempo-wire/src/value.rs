@@ -67,6 +67,32 @@ pub fn enum_bits(variants: u32) -> u32 {
     }
 }
 
+/// Applies a field's lossy transform without touching the wire — what the receiver will hold
+/// after decoding this value.
+///
+/// Delta compression **must** diff against this, not against the sender's raw state. Quantization
+/// is lossy, so a peer that compares raw values sees every quantized field as permanently changed:
+/// it sends an update, the receiver stores the quantized value, the sender compares its raw value
+/// against its own raw baseline and finds a difference again next tick. The field is re-sent every
+/// tick forever and delta compression is defeated entirely for exactly the fields it matters most
+/// for.
+pub fn lossy_round_trip(desc: &FieldDesc, v: &Value) -> Value {
+    let fx = |x: Fx| match (desc.quantize, desc.min, desc.max) {
+        (Some(step), Some(min), Some(max)) => dequantize(quantize(x, min, max, step), min, step),
+        _ => x,
+    };
+    match v {
+        Value::Fx(x) => Value::Fx(fx(*x)),
+        Value::Vec2(x) => Value::Vec2(Vec2::new(fx(x.x), fx(x.y))),
+        Value::Vec3(x) => Value::Vec3(Vec3::new(fx(x.x), fx(x.y), fx(x.z))),
+        Value::Quat(x) => match desc.quantize_bits {
+            Some(k) => Value::Quat(decompress_quat(compress_quat(*x, k), k)),
+            None => Value::Quat(*x),
+        },
+        other => other.clone(),
+    }
+}
+
 /// Encodes a single `Fx` component according to a field's quantization rule.
 fn encode_fx(w: &mut BitWriter, desc: &FieldDesc, v: Fx) {
     match (desc.quantize, desc.min, desc.max) {

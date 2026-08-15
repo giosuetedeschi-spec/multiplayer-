@@ -52,6 +52,7 @@ here. See [ADR-0000](adr/0000-adr-process.md) for the format.
 | [0024](adr/0024-phasing-and-sequencing.md) | Spec first, Rust slice second, bindings third |
 | [0025](adr/0025-naming.md) | The name `tempo` |
 | [0026](adr/0026-rust-not-go-for-the-core.md) | Rust, not Go, for the core |
+| [0027](adr/0027-fixed-size-replicated-fields.md) | Replicated fields are fixed-size |
 
 ### [`spec/`](spec/) — normative specifications
 

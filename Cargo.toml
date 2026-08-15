@@ -4,6 +4,7 @@ members = [
     "crates/tempo-tablegen",
     "crates/tempo-fixed",
     "crates/tempo-wire",
+    "crates/tempo-core",
 ]
 
 [workspace.package]

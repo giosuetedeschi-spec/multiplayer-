@@ -17,9 +17,9 @@ normative specifications the implementation is written against.
 *in progress* · One complete, playable path through the whole system in Rust alone, before any
 binding exists. Proving the design once beats porting a wrong design six times.
 
-- `tempo-fixed` — Q32.32 deterministic math
-- `tempo-wire` — bit packing, quantization, the four delta strategies
-- `tempo-core` — world arena, schema registry, fixed-timestep loop, snapshot save/restore
+- **done** `tempo-fixed` — Q32.32 deterministic math, vectors, quaternions
+- **done** `tempo-wire` — bit packing, quantization, schema canonicalisation and hashing
+- **done** `tempo-core` — world arena, entity generations, snapshots, snapshot ring, baseline deltas
 - `tempo-transport` — loopback, simulated-link, UDP
 - `tempo-netcode` — connect tokens, encryption, replay protection
 - `tempo-reliability` — four channels, ack bitfields, bandwidth budgets

@@ -94,6 +94,61 @@ field, since a 0-bit read and write is a real path the bit primitives have to ha
 
 ---
 
+## 2026-08-15 — Assumed sender and receiver hold identical bytes
+
+**What.** Three separate assertions — a test helper, a long-running sync test, and the crate's
+doctest — all checked `server.state_hash() == client.state_hash()` after applying a delta. All
+three failed, and all three were wrong.
+
+Quantization is lossy. The sender holds raw values; the receiver holds quantized ones. Their arenas
+differ by up to half a step per field **by design**, so their state hashes differ too. That is not
+a desync.
+
+**Caught by.** The first delta test failing immediately. The failure was loud, but I had written
+the same wrong assumption in three places before running anything.
+
+**Class: a mental model that was almost right.** "Replication makes the peers agree" is true at the
+level of gameplay and false at the level of bytes. I had reasoned carefully enough to get the
+*implementation* right — `encode_delta` returns `as_sent` precisely because the receiver's state
+differs from the sender's — and then wrote tests as though it did not. Getting the hard part right
+does not automatically fix the assumptions around it.
+
+**What it changed.** More than the tests. State-hash comparability is now documented on
+`World::state_hash` and in the crate docs, because a user will reach for exactly this comparison to
+build desync detection and will get a false positive on every quantized field. Hashes are
+comparable between peers running the same simulation; they are not comparable between a server's
+authoritative world and a client's replicated view.
+
+**Rule.** When three copies of an assertion fail together, fix the belief, not the three
+assertions — and check whether the belief is one a user would also hold. If so, it belongs in the
+documentation, not just the test.
+
+---
+
+## 2026-08-15 — `live_count` derived from an invariant that `alloc_at` breaks
+
+**What.** `EntityAllocator::live_count` computed `slot_count - free.len()`, assuming every slot not
+on the free list is alive. `alloc_at` — which applies a remote spawn at an index the authority
+chose — breaks that: claiming slot 150 in an empty allocator creates 150 slots that are neither
+alive nor free. A client that received a spawn at index 150 reported 151 live entities instead of 1.
+
+**Caught by.** A delta test asserting the client had 4 entities. It reported 151.
+
+**Class: a derived quantity outliving the invariant it was derived from.** The formula was correct
+when `alloc` was the only way to create a slot. `alloc_at` was added later, for a different purpose,
+and nothing connected the two. This is the same failure as the `atan` table: solving something for
+one case and not revisiting the others.
+
+**Aggravating factor.** This is the ordinary path, not a corner case — every client applying a
+remote spawn at a non-contiguous index hits it. It survived because the unit tests for the allocator
+exercised `alloc` and `alloc_at` separately and never asked for the count after a sparse claim.
+
+**Rule.** When adding a second way to mutate a structure, list every derived quantity and cached
+invariant it touches, and add a test for each. Cheap derived values should be tracked explicitly
+rather than recomputed from an assumption.
+
+---
+
 ## 2026-08-15 — `panic = "abort"` contradicted the ABI spec
 
 **What.** The release profile in the workspace `Cargo.toml` set `panic = "abort"`, copied in as a

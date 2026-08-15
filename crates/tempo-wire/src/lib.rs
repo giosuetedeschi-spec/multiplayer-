@@ -60,7 +60,7 @@ pub use schema::{
     is_identifier, quantized_bits, render_fx, ComponentDesc, FieldDesc, FieldType, Schema,
     SchemaId, SCHEMA_FORMAT_VERSION,
 };
-pub use value::{decode_field, encode_field, enum_bits, Value};
+pub use value::{decode_field, encode_field, enum_bits, lossy_round_trip, Value};
 
 use core::fmt;
 

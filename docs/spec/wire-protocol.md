@@ -116,8 +116,7 @@ repeat entity_count times:
     varuint  entity_index_delta      index minus previous index, minus 1; entities ascending
     2 bits   entity_op               0 = update, 1 = spawn, 2 = despawn, 3 = reserved
     if entity_op == spawn:
-        varuint  archetype_id
-        u32      generation
+        varuint  generation
     if entity_op != despawn:
         C bits   component_present_mask     C = component count in this archetype
         for each present component, in canonical order:
@@ -131,7 +130,11 @@ Notes that matter for implementers:
 - Entities are **sorted ascending by index** and encoded as gaps, so a snapshot of nearby entities
   costs a few bits per entity for identity.
 - `entity_op == spawn` carries the generation so that a client can distinguish a reused index from
-  the entity it replaced. Omitting this is a classic source of ghost entities.
+  the entity it replaced. Omitting this is a classic source of ghost entities. It is a varuint
+  rather than a fixed `u32` because generations start at zero and stay small.
+- A spawn **replaces** whatever occupies the slot. That is how a recycled index arrives as one
+  entry rather than a despawn/spawn pair, which would break the ascending-unique ordering the gap
+  encoding requires.
 - Against a baseline, `field_dirty_mask` marks fields differing from the baseline value. Against no
   baseline (`0xFFFFFFFF`) every field is present and the mask is all ones — encoded anyway, so the
   decoder has one code path rather than two.

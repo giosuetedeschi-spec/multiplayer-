@@ -328,6 +328,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tempo-core"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "proptest",
+ "tempo-fixed",
+ "tempo-wire",
+]
+
+[[package]]
 name = "tempo-fixed"
 version = "0.1.0"
 dependencies = [
