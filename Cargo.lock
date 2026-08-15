@@ -486,6 +486,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tempo-interest"
+version = "0.1.0"
+dependencies = [
+ "tempo-core",
+ "tempo-fixed",
+]
+
+[[package]]
 name = "tempo-netcode"
 version = "0.1.0"
 dependencies = [
