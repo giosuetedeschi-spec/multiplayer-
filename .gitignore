@@ -1,0 +1,44 @@
+/target
+**/target
+Cargo.lock.bak
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+*.tsbuildinfo
+.npm/
+*.node
+
+# Go
+vendor/
+
+# C/C++
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+
+# Generated artifacts
+/dist/
+/bindings/c/include/tempo.h.gen
+conformance/**/*.actual.json
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
