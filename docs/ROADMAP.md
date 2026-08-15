@@ -31,7 +31,7 @@ binding exists. Proving the design once beats porting a wrong design six times.
 
 planned · The features that justify the core owning state.
 
-- `tempo-rollback` — GGPO-class rollback, input prediction, sync-test mode
+- **done** `tempo-rollback` — GGPO-class rollback, input prediction, sync-test mode
 - lag compensation via server-side rewind
 - `tempo-interest` — GridAOI, spatial hash, priority accumulator, per-client budgets
 

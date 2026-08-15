@@ -94,6 +94,35 @@ field, since a 0-bit read and write is a real path the bit primitives have to ha
 
 ---
 
+## 2026-08-15 — Corrected a prediction without invalidating what was derived from it
+
+**What.** `InputQueue::confirm` recorded a corrected input at tick *T* and reported that a rollback
+was needed. It did not touch the *predictions* already recorded for ticks after *T* — which had been
+extrapolated from the value now known to be wrong. Re-simulation therefore applied the correction to
+exactly one tick and then faithfully reproduced the old, wrong future.
+
+The test showed it plainly: after correcting tick 2 to "move up" and replaying ticks 2–5, the entity
+had moved 0.1 units instead of 0.4. Three of the four replayed ticks used stale predictions.
+
+**Caught by.** An integration test that asserted the *resulting position*, not that a rollback had
+occurred. A test checking `rollbacks == 1` would have passed.
+
+**Class: correcting a value without following its dependents.** The predicted inputs were not
+independent data — they were a function of `last_known`, and changing the input changed the
+function. This is the same shape as the `live_count` bug earlier in this file: a derived quantity
+kept after its source changed.
+
+**A second bug found while fixing it.** `last_known` was updated on *every* confirmation, so a
+late-arriving input for an old tick would drag the prediction basis backwards. It now only advances
+on the newest confirmed tick.
+
+**Rule.** When a value is derived from another, write down where the derivations live at the moment
+you write the derivation — not when something breaks. Then a correction path has an explicit list to
+walk. And assert on outcomes, not on mechanisms: "a rollback happened" is not the same claim as "the
+state is now right".
+
+---
+
 ## 2026-08-15 — Built the demo without the client lead, then miscounted the consequence
 
 Two bugs from one end-to-end demo, both invisible to 250 passing unit tests.

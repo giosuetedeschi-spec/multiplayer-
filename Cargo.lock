@@ -510,6 +510,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tempo-rollback"
+version = "0.1.0"
+dependencies = [
+ "tempo-core",
+ "tempo-fixed",
+ "tempo-wire",
+]
+
+[[package]]
 name = "tempo-tablegen"
 version = "0.1.0"
 
